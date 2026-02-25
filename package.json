@@ -9,8 +9,5 @@
     "start": "netlify dev",
     "build": "netlify build",
     "deploy": "netlify deploy --prod"
-  },
-  "devDependencies": {
-    "netlify-cli": "^18.20.0"
   }
 }
