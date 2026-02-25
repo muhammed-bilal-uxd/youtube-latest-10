@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Grid</title>
+
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial;
+      }
+
+      /* Grid layout */
+      .ytg-grid {
+        display: grid;
+        gap: 12px;
+        padding: 20px;
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      /* Tablet */
+      @media (max-width: 1024px) {
+        .ytg-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      /* Mobile */
+      @media (max-width: 600px) {
+        .ytg-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      /* Card */
+      .ytg-card {
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+      }
+
+      .ytg-thumb {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        transition: transform 0.3s;
+      }
+
+      .ytg-card:hover .ytg-thumb {
+        transform: scale(1.05);
+      }
+
+      .ytg-title {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 10px 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .ytg-meta {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        padding: 0 10px 10px;
+      }
+
+      /* Lightbox */
+      .ytg-lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+      }
+
+      .ytg-lightbox.open {
+        display: flex;
+      }
+
+      .ytg-player {
+        width: min(960px, 92vw);
+        aspect-ratio: 16/9;
+        border: 0;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="ytg-grid" id="ytg-grid"></div>
+
+    <div class="ytg-lightbox" id="ytg-lightbox">
+      <iframe
+        id="ytg-player"
+        class="ytg-player"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+      >
+      </iframe>
+    </div>
+
+    <script>
+      (function () {
+        const CHANNEL_ID = "UCfKcU5LPhtoWRkWfl1kUlJw";
+        const MAX_VIDEOS = 10;
+
+        const grid = document.getElementById("ytg-grid");
+        const lb = document.getElementById("ytg-lightbox");
+        const player = document.getElementById("ytg-player");
+
+        // ✅ Netlify Function endpoint (same project)
+        const url =
+          "/.netlify/functions/youtube?channelId=" +
+          CHANNEL_ID +
+          "&limit=" +
+          MAX_VIDEOS +
+          "&_=" +
+          Date.now();
+
+        fetch(url)
+          .then((r) => r.json())
+          .then((data) => {
+            const items = data.items || [];
+            grid.innerHTML = "";
+
+            items.forEach((item) => {
+              const vid =
+                item.videoId || (item.link.split("v=")[1] || "").split("&")[0];
+
+              if (!vid) return;
+
+              const thumb =
+                item.thumbnail ||
+                "https://i.ytimg.com/vi/" + vid + "/hqdefault.jpg";
+
+              const rawDate = item.published || "";
+              const d = rawDate ? new Date(rawDate) : null;
+
+              const uploaded =
+                d && !isNaN(d.getTime()) ? d.toLocaleString() : "";
+
+              const div = document.createElement("div");
+              div.className = "ytg-card";
+
+              div.innerHTML =
+                '<img src="' +
+                thumb +
+                '" class="ytg-thumb">' +
+                '<div class="ytg-title">' +
+                item.title +
+                "</div>" +
+                '<div class="ytg-meta">' +
+                (uploaded ? "Uploaded: " + uploaded : "") +
+                "</div>";
+
+              div.addEventListener("click", () => {
+                player.src =
+                  "https://www.youtube.com/embed/" +
+                  vid +
+                  "?autoplay=1&rel=0&modestbranding=1";
+                lb.classList.add("open");
+              });
+
+              grid.appendChild(div);
+            });
+          })
+          .catch(() => {
+            grid.innerHTML =
+              '<div style="color:white;padding:20px;">Unable to load videos</div>';
+          });
+
+        // Close modal
+        lb.addEventListener("click", (e) => {
+          if (e.target !== lb) return;
+          lb.classList.remove("open");
+          player.src = "";
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "yt-grid-netlify",
+  "version": "1.0.0",
+  "dependencies": {
+    "fast-xml-parser": "^4.5.3"
+  },
+  "scripts": {
+    "init": "netlify init",
+    "start": "netlify dev",
+    "build": "netlify build",
+    "deploy": "netlify deploy --prod"
+  },
+  "devDependencies": {
+    "netlify-cli": "^18.20.0"
+  }
+}
